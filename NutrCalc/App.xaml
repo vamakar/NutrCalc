@@ -1,0 +1,122 @@
+﻿<Application x:Class="NutrCalc.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:NutrCalc"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <Style x:Key="TextBox">
+            <Setter Property="TextBox.MinWidth" Value="100"/>
+            <Setter Property="TextBox.MinHeight" Value="10"/>
+            <Setter Property="TextBox.HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="TextBox.VerticalContentAlignment" Value="Center"/>
+            <Setter Property="TextBox.Margin" Value="1"/>
+        </Style>
+        <Style x:Key="TextBlock">
+            <Setter Property="TextBlock.MinWidth" Value="100"/>
+            <Setter Property="TextBlock.MinHeight" Value="10"/>
+            <Setter Property="TextBlock.TextAlignment" Value="Left"/>
+            <Setter Property="TextBlock.VerticalAlignment" Value="Center"/>
+            <Setter Property="TextBlock.Margin" Value="1"/>
+        </Style>
+        <Style x:Key="WeightText" TargetType="TextBox" BasedOn="{StaticResource TextBox}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <Style.Resources>
+                <VisualBrush x:Key="WeightBackground" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                    <VisualBrush.Visual>
+                        <Label Content="weight" Foreground="Gray"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                    <Setter Property="Background" Value="{StaticResource WeightBackground}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Null}">
+                    <Setter Property="Background" Value="{StaticResource WeightBackground}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="HeightText" TargetType="TextBox" BasedOn="{StaticResource TextBox}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <Style.Resources>
+                <VisualBrush x:Key="HeightBackground" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                    <VisualBrush.Visual>
+                        <Label Content="height" Foreground="Gray"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                    <Setter Property="Background" Value="{StaticResource HeightBackground}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Null}">
+                    <Setter Property="Background" Value="{StaticResource HeightBackground}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="AgeText" TargetType="TextBox" BasedOn="{StaticResource TextBox}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <Style.Resources>
+                <VisualBrush x:Key="AgeBackground" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                    <VisualBrush.Visual>
+                        <Label Content="age" Foreground="Gray"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                    <Setter Property="Background" Value="{StaticResource AgeBackground}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Null}">
+                    <Setter Property="Background" Value="{StaticResource AgeBackground}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DeviationText" TargetType="TextBox" BasedOn="{StaticResource TextBox}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <Style.Resources>
+                <VisualBrush x:Key="DeviationBackground" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                    <VisualBrush.Visual>
+                        <Label Content="deviation" Foreground="Gray"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                    <Setter Property="Background" Value="{StaticResource DeviationBackground}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Null}">
+                    <Setter Property="Background" Value="{StaticResource DeviationBackground}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="IdText" TargetType="TextBox" BasedOn="{StaticResource TextBox}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <Style.Resources>
+                <VisualBrush x:Key="IdBackground" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                    <VisualBrush.Visual>
+                        <Label Content="Profile ID" Foreground="Gray"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                    <Setter Property="Background" Value="{StaticResource IdBackground}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Null}">
+                    <Setter Property="Background" Value="{StaticResource IdBackground}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>
