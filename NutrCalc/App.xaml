@@ -5,7 +5,7 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style x:Key="TextBox">
-            <Setter Property="TextBox.MinWidth" Value="100"/>
+            <Setter Property="TextBox.MinWidth" Value="40"/>
             <Setter Property="TextBox.MinHeight" Value="10"/>
             <Setter Property="TextBox.HorizontalContentAlignment" Value="Center"/>
             <Setter Property="TextBox.VerticalContentAlignment" Value="Center"/>
@@ -14,9 +14,13 @@
         <Style x:Key="TextBlock">
             <Setter Property="TextBlock.MinWidth" Value="100"/>
             <Setter Property="TextBlock.MinHeight" Value="10"/>
-            <Setter Property="TextBlock.TextAlignment" Value="Left"/>
+            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
             <Setter Property="TextBlock.VerticalAlignment" Value="Center"/>
             <Setter Property="TextBlock.Margin" Value="1"/>
+        </Style>
+        <Style x:Key="TextBlockNum" BasedOn="{StaticResource TextBlock}">
+            <Setter Property="TextBlock.FontFamily" Value="Serif"/>
+            <Setter Property="TextBlock.FontSize" Value="20"/>
         </Style>
         <Style x:Key="WeightText" TargetType="TextBox" BasedOn="{StaticResource TextBox}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
             <Style.Resources>

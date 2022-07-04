@@ -1,18 +1,17 @@
-﻿using System;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace NutrCalc
 {
-    /// <summary>
-    /// Логика взаимодействия для Window1.xaml
-    /// </summary>
     public partial class ProfilesWindow : Window
     {
-        public ProfilesWindow()
+        private ProfileManager ProfileManager { get; }
+
+        internal ProfilesWindow(ProfileManager profileManager)
         {
+            ProfileManager = profileManager;
+
             InitializeComponent();
 
             DisplayProfiles();
@@ -20,7 +19,7 @@ namespace NutrCalc
 
         private void DisplayProfiles()
         {
-            foreach (string profile in MainWindow.ProfileDictionary.Keys)
+            foreach (string profile in ProfileManager.ProfileDictionary.Keys)
             {
                 var newItem = new ListViewItem() {Name = profile, Content = profile};
                 newItem.MouseDoubleClick += ProfilesPanel_OnMouseDoubleClick;
@@ -31,8 +30,7 @@ namespace NutrCalc
 
         private void LoadProfileById(IFrameworkInputElement listViewItem)
         {
-            MainWindow mainWindow = Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
-            mainWindow?.LoadProfile(listViewItem?.Name);
+            ProfileManager.LoadProfile(listViewItem?.Name);
 
             Close();
         }
@@ -60,7 +58,7 @@ namespace NutrCalc
             {
                 if (!item.IsSelected) continue;
 
-                MainWindow.ProfileDictionary.Remove(item.Name);
+                ProfileManager.ProfileDictionary.Remove(item.Name);
                 ProfilesPanel.Items.Remove(item);
 
                 break;

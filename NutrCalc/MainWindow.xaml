@@ -8,8 +8,8 @@
         Title="Nutrition Calculator" Height="200" Width="400">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
         <DockPanel Grid.Column="0" Margin="1">
             <DockPanel DockPanel.Dock="Top">
@@ -64,10 +64,12 @@
                 <Button Click="SaveButton_OnClick">Save</Button>
                 <TextBox Name="IdTextBox" Style="{StaticResource IdText}"/>
             </ToolBar>
-            <TextBlock x:Name="TextBlockBMI" Style="{StaticResource TextBlock}"/>
-            <TextBlock x:Name="TextBlockMR" Style="{StaticResource TextBlock}"/>
-            <TextBlock x:Name="TextBlockDCN" Style="{StaticResource TextBlock}"/>
-            <TextBlock x:Name="TextBlockDCI" Style="{StaticResource TextBlock}"/>
+            <TextBlock x:Name="TextBlockBmiText" Style="{StaticResource TextBlock}"/>
+            <TextBlock x:Name="TextBlockBmiNum" Style="{StaticResource TextBlockNum}"/>
+            <TextBlock x:Name="TextBlockMrText" Style="{StaticResource TextBlock}"/>
+            <TextBlock x:Name="TextBlockMrNum" Style="{StaticResource TextBlockNum}"/>
+            <TextBlock x:Name="TextBlockDciText" Style="{StaticResource TextBlock}"/>
+            <TextBlock x:Name="TextBlockDciNum" Style="{StaticResource TextBlockNum}"/>
         </StackPanel>
     </Grid>
 </Window>
