@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -7,6 +7,8 @@ namespace NutrCalc
     public partial class ProfilesWindow : Window
     {
         private ProfileManager ProfileManager { get; }
+
+        internal Profile SelectedProfile { get; private set; }
 
         internal ProfilesWindow(ProfileManager profileManager)
         {
@@ -19,35 +21,52 @@ namespace NutrCalc
 
         private void DisplayProfiles()
         {
-            foreach (string profile in ProfileManager.ProfileDictionary.Keys)
+            foreach (var profile in ProfileManager.GetProfiles())
             {
-                var newItem = new ListViewItem() {Name = profile, Content = profile};
+                var newItem = new ListViewItem { Tag = profile.Id, Content = profile.Id };
                 newItem.MouseDoubleClick += ProfilesPanel_OnMouseDoubleClick;
 
                 ProfilesPanel.Items.Add(newItem);
             }
         }
 
-        private void LoadProfileById(IFrameworkInputElement listViewItem)
+        private bool SelectProfile(ListViewItem item)
         {
-            ProfileManager.LoadProfile(listViewItem?.Name);
+            if (item == null)
+            {
+                return false;
+            }
 
-            Close();
+            SelectedProfile = ProfileManager.GetProfile((string) item.Tag);
+
+            if (SelectedProfile == null)
+            {
+                return false;
+            }
+
+            DialogResult = true;
+            return true;
         }
 
         private void ProfilesPanel_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var item = e.Source as ListViewItem;
-            LoadProfileById(item);
+            SelectProfile(e.Source as ListViewItem);
         }
 
         private void SelectButton_OnClick(object sender, RoutedEventArgs e)
         {
             foreach (ListViewItem item in ProfilesPanel.Items)
             {
-                if (!item.IsSelected) continue;
+                if (!item.IsSelected)
+                {
+                    continue;
+                }
 
-                LoadProfileById(item);
+                if (SelectProfile(item))
+                {
+                    return;
+                }
+
                 break;
             }
         }
@@ -56,9 +75,12 @@ namespace NutrCalc
         {
             foreach (ListViewItem item in ProfilesPanel.Items)
             {
-                if (!item.IsSelected) continue;
+                if (!item.IsSelected)
+                {
+                    continue;
+                }
 
-                ProfileManager.ProfileDictionary.Remove(item.Name);
+                ProfileManager.Delete((string) item.Tag);
                 ProfilesPanel.Items.Remove(item);
 
                 break;

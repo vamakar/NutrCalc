@@ -1,177 +1,89 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Windows;
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.Serialization;
 
 namespace NutrCalc
 {
-    internal class ProfileManager
+    public class ProfileManager : IDisposable
     {
-        internal Dictionary<string, Profile> ProfileDictionary { get; }
-        private MainWindow MainWindow { get; }
-        private string ProfilesLocation => $"{AppDomain.CurrentDomain.BaseDirectory}/profiles.xml";
-        private string ProfilesScheme => "NutrCalc.Profiles.xsd";
+        private readonly NutrCalcContext context;
 
-        public ProfileManager(MainWindow mainWindow)
+        public ProfileManager()
+            : this(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NutrCalc.db"))
         {
-            MainWindow = mainWindow;
-            ProfileDictionary = GetProfiles();
         }
 
-        internal void SaveInputData(string id)
+        public ProfileManager(string databasePath)
         {
-            MainWindow.CurrentProfile.id = MainWindow.IdTextBox.Text;
-
-            if (ProfileDictionary.ContainsKey(id))
+            if (string.IsNullOrWhiteSpace(databasePath))
             {
-                ProfileDictionary[id] = MainWindow.CurrentProfile;
+                throw new ArgumentException("Database path must not be empty.", nameof(databasePath));
+            }
+
+            DatabasePath = databasePath;
+            context = new NutrCalcContext(databasePath);
+            context.EnsureCreated();
+        }
+
+        public string DatabasePath { get; }
+
+        public IReadOnlyList<Profile> GetProfiles()
+        {
+            return context.Profiles
+                .OrderBy(profile => profile.Id)
+                .ToList();
+        }
+
+        public Profile GetProfile(string id)
+        {
+            return context.Profiles
+                .AsNoTracking()
+                .FirstOrDefault(profile => profile.Id == id);
+        }
+
+        public void Save(Profile profile)
+        {
+            if (profile == null)
+            {
+                throw new ArgumentNullException(nameof(profile));
+            }
+
+            if (string.IsNullOrWhiteSpace(profile.Id))
+            {
+                throw new ArgumentException("Profile id must not be empty.", nameof(profile));
+            }
+
+            var stored = context.Profiles.Find(profile.Id);
+
+            if (stored == null)
+            {
+                context.Profiles.Add(profile);
             }
             else
             {
-                ProfileDictionary.Add(id, MainWindow.CurrentProfile);
+                context.Entry(stored).CurrentValues.SetValues(profile);
             }
 
-            var writer = new XmlSerializer(typeof(Profiles));
-            var xmlDoc = new XmlDocument();
-
-            using (var memStr = new MemoryStream())
-            {
-                writer.Serialize(memStr, new Profiles { profile = ProfileDictionary.Values.ToArray() });
-                memStr.Position = 0;
-                xmlDoc.Load(memStr);
-            }
-
-            xmlDoc.Save(ProfilesLocation);
+            context.SaveChanges();
         }
 
-        internal Dictionary<string, Profile> GetProfiles()
+        public void Delete(string id)
         {
-            var xmlDoc = new XmlDocument();
+            var stored = context.Profiles.Find(id);
 
-            if (!File.Exists(ProfilesLocation)) return new Dictionary<string, Profile>();
-
-            xmlDoc.Load(ProfilesLocation);
-            var eventHandler = new ValidationEventHandler(ValidationEventHandler);
-
-            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ProfilesScheme))
+            if (stored == null)
             {
-                XmlSchema xmlSchema = XmlSchema.Read(stream, eventHandler);
-                xmlDoc.Schemas.Add(xmlSchema);
-                xmlDoc.Validate(eventHandler);
+                return;
             }
 
-            using (var xmlReader = new XmlTextReader(ProfilesLocation))
-            {
-                var xmlSerializer = new XmlSerializer(typeof(Profiles));
-                var profiles = (Profiles)xmlSerializer.Deserialize(xmlReader);
-
-                return profiles.profile.ToDictionary(x => x.id, x => x);
-            }
+            context.Profiles.Remove(stored);
+            context.SaveChanges();
         }
 
-        internal void LoadProfile(string key)
+        public void Dispose()
         {
-            Profile profile = ProfileDictionary[key];
-
-            MainWindow.IdTextBox.Text = profile.id;
-
-            MainWindow.TextBoxWeight.Text = profile.weight.ToString();
-            MainWindow.TextBoxHeight.Text = (profile.height * 100).ToString();
-            MainWindow.TextBoxAge.Text = profile.age.ToString();
-
-            switch (profile.gender)
-            {
-                case Gender.Male:
-                    MainWindow.GenderMale.IsChecked = true;
-                    break;
-                case Gender.Female:
-                    MainWindow.GenderFemale.IsChecked = true;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            switch (profile.sign)
-            {
-                case Sign.Gain:
-                    MainWindow.DeviationGain.IsChecked = true;
-                    break;
-                case Sign.Keep:
-                    MainWindow.DeviationKeep.IsChecked = true;
-                    break;
-                case Sign.Loss:
-                    MainWindow.DeviationLoss.IsChecked = true;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            switch (profile.pal)
-            {
-                case 1.2:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 0;
-                    break;
-                case 1.3:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 1;
-                    break;
-                case 1.4:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 2;
-                    break;
-                case 1.5:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 3;
-                    break;
-                case 1.6:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 4;
-                    break;
-                case 1.7:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 5;
-                    break;
-                case 1.8:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 6;
-                    break;
-                case 1.9:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 7;
-                    break;
-                case 2.0:
-                    MainWindow.ComboBoxPAL.SelectedIndex = 8;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            MainWindow.TextBoxDeviation.Text = profile.deviation.ToString();
-
-            MainWindow.CurrentProfile = new Profile
-            {
-                id = profile.id,
-                weight = profile.weight,
-                height = profile.height,
-                age = profile.age,
-                gender = profile.gender,
-                sign = profile.sign,
-                pal = profile.pal,
-                deviation = profile.deviation
-            };
-        }
-
-        private static void ValidationEventHandler(object sender, ValidationEventArgs e)
-        {
-            switch (e.Severity)
-            {
-                case XmlSeverityType.Error:
-                    MessageBox.Show(e.Message, "Error");
-                    break;
-                case XmlSeverityType.Warning:
-                    MessageBox.Show(e.Message, "Warning");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            context.Dispose();
         }
     }
 }

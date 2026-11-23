@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,78 +10,220 @@ namespace NutrCalc
     {
         internal Profile CurrentProfile { get; set; }
         private ProfileManager ProfileManager { get; }
-        private string WeightDevText { get; set; }
 
         public MainWindow()
         {
-            ProfileManager = new ProfileManager(this);
+            ProfileManager = new ProfileManager();
             CurrentProfile = new Profile
             {
-                id = string.Empty
+                Id = string.Empty
             };
 
             InitializeComponent();
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            ProfileManager.Dispose();
+            base.OnClosed(e);
+        }
+
         private void BMI_Calc_Click(object sender, RoutedEventArgs e)
         {
-            double weight;
-            double height;
-            short age;
-            double physActLevel;
-            double deviation;
-            try
-            {
-                weight = Convert.ToDouble(TextBoxWeight.Text);
-                height = Convert.ToDouble(TextBoxHeight.Text);
-                age = Convert.ToInt16(TextBoxAge.Text);
-                physActLevel = Convert.ToDouble(((ComboBoxItem)ComboBoxPAL.SelectedItem).Content.ToString().Replace('.', ','));
-                deviation = Convert.ToDouble(TextBoxDeviation.Text);
-            }
-            catch (FormatException)
+            if (!TryBuildProfile(IdTextBox.Text.Trim(), out Profile profile))
             {
                 return;
             }
 
-            if (ComboBoxWeight.SelectedIndex == 1)
-            {
-                weight *= 2.20462;
-            }
-
-            double measSysCoeff = GetMeasSysCoeff();
-            height *= measSysCoeff;
-
-            double genderCoeff = GetGenderCoeff(CurrentProfile.gender);
-            double deviationCoeff = GetDeviationCoeff(CurrentProfile.sign);
-            double metabolicRate = CalcMr(weight, height, age, genderCoeff);
-            double dailyCalorieIndex = metabolicRate * physActLevel * (1 + deviationCoeff * deviation / 100);
-
-            DisplayResults(weight, height, metabolicRate, dailyCalorieIndex);
-
-            CurrentProfile.weight = weight;
-            CurrentProfile.height = height;
-            CurrentProfile.age = age;
-            CurrentProfile.pal = physActLevel;
-            CurrentProfile.deviation = deviation;
+            CurrentProfile = profile;
+            DisplayResults(profile);
         }
 
-        private double GetMeasSysCoeff()
+        private void SaveButton_OnClick(object sender, RoutedEventArgs e)
         {
-            double measSysCoeff;
-            switch (ComboBoxHeight.SelectedIndex)
+            string id = IdTextBox.Text.Trim();
+
+            if (id.Length == 0)
             {
-                case 0:
-                    measSysCoeff = 0.01;
-                    break;
-                case 2:
-                    measSysCoeff = 0.00393701;
-                    break;
-                default:
-                    measSysCoeff = 1;
-                    break;
+                MessageBox.Show(
+                    "Enter a profile name in the ID field before saving.",
+                    "Profile name required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                IdTextBox.Focus();
+                return;
             }
 
-            return measSysCoeff;
+            if (!TryBuildProfile(id, out Profile profile))
+            {
+                return;
+            }
+
+            CurrentProfile = profile;
+
+            try
+            {
+                ProfileManager.Save(profile);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(
+                    $"Profile \"{id}\" was not saved.{Environment.NewLine}{exception.Message}",
+                    "Save failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                return;
+            }
+
+            MessageBox.Show(
+                $"Profile \"{id}\" saved.",
+                "Saved",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        private void LoadButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            var profilesWindow = new ProfilesWindow(ProfileManager)
+            {
+                Owner = this
+            };
+
+            if (profilesWindow.ShowDialog() == true && profilesWindow.SelectedProfile != null)
+            {
+                ApplyProfile(profilesWindow.SelectedProfile);
+            }
+        }
+
+        private void ApplyProfile(Profile profile)
+        {
+            IdTextBox.Text = profile.Id;
+            ComboBoxWeight.SelectedIndex = 0;
+            TextBoxWeight.Text = profile.Weight.ToString(CultureInfo.CurrentCulture);
+            ComboBoxHeight.SelectedIndex = 0;
+            TextBoxHeight.Text = profile.Height.ToString(CultureInfo.CurrentCulture);
+            TextBoxAge.Text = profile.Age.ToString(CultureInfo.CurrentCulture);
+            TextBoxDeviation.Text = profile.Deviation.ToString(CultureInfo.CurrentCulture);
+
+            ComboBoxPAL.SelectedIndex = GetPalIndex(profile.Pal);
+
+            GenderMale.IsChecked = profile.Gender == Gender.Male;
+            GenderFemale.IsChecked = profile.Gender == Gender.Female;
+            DeviationGain.IsChecked = profile.Sign == Sign.Gain;
+            DeviationKeep.IsChecked = profile.Sign == Sign.Keep;
+            DeviationLoss.IsChecked = profile.Sign == Sign.Loss;
+
+            CurrentProfile = profile;
+        }
+
+        private int GetPalIndex(double pal)
+        {
+            for (var index = 0; index < ComboBoxPAL.Items.Count; index++)
+            {
+                var item = (ComboBoxItem)ComboBoxPAL.Items[index];
+
+                if (TryParseDouble(item.Content.ToString(), out double value) && Math.Abs(value - pal) < 0.0001)
+                {
+                    return index;
+                }
+            }
+
+            return 0;
+        }
+
+        private bool TryBuildProfile(string id, out Profile profile)
+        {
+            profile = null;
+
+            if (!TryReadInputs(out double weight, out double height, out short age, out double physActLevel, out double deviation))
+            {
+                return false;
+            }
+
+            profile = new Profile
+            {
+                Id = id,
+                Weight = Units.WeightToKilograms(weight, GetUnit(ComboBoxWeight, "kg")),
+                Height = Units.HeightToCentimeters(height, GetUnit(ComboBoxHeight, "cm")),
+                Age = age,
+                Gender = CurrentProfile.Gender,
+                Sign = CurrentProfile.Sign,
+                Pal = physActLevel,
+                Deviation = deviation
+            };
+
+            return true;
+        }
+
+        private static string GetUnit(ComboBox comboBox, string fallback)
+        {
+            return (comboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? fallback;
+        }
+
+        private bool TryReadInputs(out double weight, out double height, out short age, out double physActLevel, out double deviation)
+        {
+            weight = 0;
+            height = 0;
+            age = 0;
+            deviation = 0;
+            physActLevel = 0;
+
+            var invalidFields = new List<string>();
+            TextBox firstInvalidField = null;
+
+            if (!TryParseDouble(TextBoxWeight.Text, out weight))
+            {
+                invalidFields.Add("weight");
+                firstInvalidField = firstInvalidField ?? TextBoxWeight;
+            }
+
+            if (!TryParseDouble(TextBoxHeight.Text, out height))
+            {
+                invalidFields.Add("height");
+                firstInvalidField = firstInvalidField ?? TextBoxHeight;
+            }
+
+            if (!short.TryParse(TextBoxAge.Text, NumberStyles.Integer, CultureInfo.CurrentCulture, out age))
+            {
+                invalidFields.Add("age");
+                firstInvalidField = firstInvalidField ?? TextBoxAge;
+            }
+
+            if (!TryParseDouble(TextBoxDeviation.Text, out deviation))
+            {
+                invalidFields.Add("deviation");
+                firstInvalidField = firstInvalidField ?? TextBoxDeviation;
+            }
+
+            if (!(ComboBoxPAL.SelectedItem is ComboBoxItem palItem) || !TryParseDouble(palItem.Content.ToString(), out physActLevel))
+            {
+                invalidFields.Add("PAL");
+            }
+
+            if (invalidFields.Count == 0)
+            {
+                return true;
+            }
+
+            MessageBox.Show(
+                $"Please enter numbers for: {string.Join(", ", invalidFields)}.{Environment.NewLine}" +
+                "The decimal separator can be a comma or a dot, e.g. 70,5.",
+                "Invalid input",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+
+            firstInvalidField?.Focus();
+            firstInvalidField?.SelectAll();
+
+            return false;
+        }
+
+        private static bool TryParseDouble(string text, out double value)
+        {
+            return double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value)
+                   || double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
         }
 
         private static double GetGenderCoeff(Gender gender)
@@ -101,54 +244,56 @@ namespace NutrCalc
             return genderCoeff;
         }
 
-        private static double CalcMr(double weight, double height, short age, double genderCoeff)
+        private static double CalcBmr(double weight, double heightInMeters, short age, double genderCoeff)
         {
-            return weight * 9.99 + height * 625 - age * 4.92 + genderCoeff;
+            return weight * 9.99 + heightInMeters * 625 - age * 4.92 + genderCoeff;
         }
 
-        private double GetDeviationCoeff(Sign sign)
+        private static double GetDeviationCoeff(Sign sign)
         {
-            double deviationCoeff;
             switch (sign)
             {
                 case Sign.Gain:
-                    WeightDevText = "for weight gain";
-                    deviationCoeff = 1;
-                    break;
+                    return 1;
                 case Sign.Keep:
-                    WeightDevText = "to keep weight";
-                    deviationCoeff = 0;
-                    break;
+                    return 0;
                 case Sign.Loss:
-                    WeightDevText = "for weight loss";
-                    deviationCoeff = -1;
-                    break;
+                    return -1;
                 default:
                     throw new Exception("Unknown case");
             }
-
-            return deviationCoeff;
         }
 
-        private void DisplayResults(double weight, double height, double mr, double dci)
+        private static string GetDeviationText(Sign sign)
         {
-            TextBlockBmiText.Text = "Basal metabolic rate:";
-            TextBlockBmiNum.Text = (weight / height / height).ToString("##.##", CultureInfo.InvariantCulture);
-            TextBlockMrText.Text = "Metabolic rate:";
-            TextBlockMrNum.Text = mr.ToString("####", CultureInfo.InvariantCulture);
-            TextBlockDciText.Text = $"Daily calorie index {WeightDevText}:";
-            TextBlockDciNum.Text = dci.ToString("####", CultureInfo.InvariantCulture);
+            switch (sign)
+            {
+                case Sign.Gain:
+                    return "for weight gain";
+                case Sign.Keep:
+                    return "to keep weight";
+                case Sign.Loss:
+                    return "for weight loss";
+                default:
+                    throw new Exception("Unknown case");
+            }
         }
 
-        private void LoadButton_OnClick(object sender, RoutedEventArgs e)
+        private void DisplayResults(Profile profile)
         {
-            var profilesWindow = new ProfilesWindow(ProfileManager);
-            profilesWindow.Show();
-        }
+            double heightInMeters = profile.Height / 100;
+            double genderCoeff = GetGenderCoeff(profile.Gender);
+            double deviationCoeff = GetDeviationCoeff(profile.Sign);
+            double basalMetabolicRate = CalcBmr(profile.Weight, heightInMeters, profile.Age, genderCoeff);
+            double bodyMassIndex = profile.Weight / heightInMeters / heightInMeters;
+            double dailyCalorieIndex = basalMetabolicRate * profile.Pal * (1 + deviationCoeff * profile.Deviation / 100);
 
-        private void SaveButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            ProfileManager.SaveInputData(IdTextBox.Text);
+            TextBlockBmrText.Text = "Basal metabolic rate:";
+            TextBlockBmrNum.Text = basalMetabolicRate.ToString("####", CultureInfo.InvariantCulture);
+            TextBlockBmiText.Text = "Body mass index:";
+            TextBlockBmiNum.Text = bodyMassIndex.ToString("##.##", CultureInfo.InvariantCulture);
+            TextBlockDciText.Text = $"Daily calorie index {GetDeviationText(profile.Sign)}:";
+            TextBlockDciNum.Text = dailyCalorieIndex.ToString("####", CultureInfo.InvariantCulture);
         }
 
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
@@ -161,13 +306,13 @@ namespace NutrCalc
                     switch (radioButton.Name)
                     {
                         case "DeviationGain":
-                            CurrentProfile.sign = Sign.Gain;
+                            CurrentProfile.Sign = Sign.Gain;
                             break;
                         case "DeviationKeep":
-                            CurrentProfile.sign = Sign.Keep;
+                            CurrentProfile.Sign = Sign.Keep;
                             break;
                         case "DeviationLoss":
-                            CurrentProfile.sign = Sign.Loss;
+                            CurrentProfile.Sign = Sign.Loss;
                             break;
                     }
                     break;
@@ -175,10 +320,10 @@ namespace NutrCalc
                     switch (radioButton.Name)
                     {
                         case "GenderMale":
-                            CurrentProfile.gender = Gender.Male;
+                            CurrentProfile.Gender = Gender.Male;
                             break;
                         case "GenderFemale":
-                            CurrentProfile.gender = Gender.Female;
+                            CurrentProfile.Gender = Gender.Female;
                             break;
                     }
                     break;
