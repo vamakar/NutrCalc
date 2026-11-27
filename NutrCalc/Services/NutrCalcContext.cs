@@ -1,7 +1,8 @@
 using System.Data.Entity;
 using System.Data.SQLite;
+using NutrCalc.Models;
 
-namespace NutrCalc
+namespace NutrCalc.Services
 {
     public class NutrCalcContext : DbContext
     {
@@ -19,8 +20,6 @@ namespace NutrCalc
         public NutrCalcContext(string databasePath)
             : base(new SQLiteConnection($"Data Source={databasePath};Version=3;"), true)
         {
-            // Схема создаётся вручную в EnsureCreated: SQLite-провайдер EF6
-            // не умеет создавать таблицы через CreateIfNotExists.
             System.Data.Entity.Database.SetInitializer<NutrCalcContext>(null);
         }
 

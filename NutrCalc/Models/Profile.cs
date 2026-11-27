@@ -1,16 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace NutrCalc
+namespace NutrCalc.Models
 {
     public class Profile
     {
         [Key]
         public string Id { get; set; }
 
-        /// <summary>Вес в килограммах.</summary>
         public double Weight { get; set; }
 
-        /// <summary>Рост в сантиметрах.</summary>
         public double Height { get; set; }
 
         public short Age { get; set; }

@@ -1,0 +1,23 @@
+<Window x:Class="NutrCalc.Views.ProfilesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:infra="clr-namespace:NutrCalc.Infrastructure"
+        xmlns:vm="clr-namespace:NutrCalc.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:ProfilesWindowViewModel, IsDesignTimeCreatable=False}"
+        Title="{Binding Localization[ProfilesWindowTitle]}" Height="250" Width="220">
+    <DockPanel>
+        <ToolBar DockPanel.Dock="Top" MinHeight="25" Margin="1" ToolBarTray.IsLocked="True">
+            <Button Content="{Binding Localization[SelectButton]}" Command="{Binding SelectCommand}"
+                    ToolBar.OverflowMode="Never"/>
+            <Button Content="{Binding Localization[DeleteButton]}" Command="{Binding DeleteCommand}"
+                    ToolBar.OverflowMode="Never"/>
+        </ToolBar>
+        <ListView ItemsSource="{Binding Profiles}"
+                  SelectedItem="{Binding SelectedProfile}"
+                  DisplayMemberPath="Id"
+                  infra:DoubleClickCommand.Command="{Binding SelectCommand}"/>
+    </DockPanel>
+</Window>

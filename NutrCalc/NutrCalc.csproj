@@ -59,29 +59,45 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ProfileManager.cs" />
-    <Compile Include="ProfilesWindow.xaml.cs">
-      <DependentUpon>ProfilesWindow.xaml</DependentUpon>
-    </Compile>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NutrCalcContext.cs" />
-    <Compile Include="Profile.cs" />
-    <Compile Include="Units.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Infrastructure\DoubleClickCommand.cs" />
+    <Compile Include="Infrastructure\EnumToBooleanConverter.cs" />
+    <Compile Include="Infrastructure\RelayCommand.cs" />
+    <Compile Include="Infrastructure\ViewModelBase.cs" />
+    <Compile Include="Models\Profile.cs" />
+    <Compile Include="Services\Calculator.cs" />
+    <Compile Include="Services\IDialogService.cs" />
+    <Compile Include="Services\ILocalizationService.cs" />
+    <Compile Include="Services\IProfileStore.cs" />
+    <Compile Include="Services\Language.cs" />
+    <Compile Include="Services\LocalizationService.cs" />
+    <Compile Include="Services\NutrCalcContext.cs" />
+    <Compile Include="Services\ProfileManager.cs" />
+    <Compile Include="Services\Units.cs" />
+    <Compile Include="ViewModels\MainWindowViewModel.cs" />
+    <Compile Include="ViewModels\PalOption.cs" />
+    <Compile Include="ViewModels\ProfilesWindowViewModel.cs" />
+    <Compile Include="ViewModels\UnitOption.cs" />
+    <Page Include="Views\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="ProfilesWindow.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="Views\ProfilesWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Views\ProfilesWindow.xaml.cs">
+      <DependentUpon>ProfilesWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Views\DialogService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

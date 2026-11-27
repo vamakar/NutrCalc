@@ -1,0 +1,107 @@
+<Window x:Class="NutrCalc.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:infra="clr-namespace:NutrCalc.Infrastructure"
+        xmlns:models="clr-namespace:NutrCalc.Models"
+        xmlns:vm="clr-namespace:NutrCalc.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel, IsDesignTimeCreatable=False}"
+        Title="{Binding Localization[MainWindowTitle]}" Height="230" Width="430">
+    <Window.Resources>
+        <infra:EnumToBooleanConverter x:Key="EnumToBoolean"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="1">
+            <ToolBar MinHeight="25" VerticalAlignment="Center" ToolBarTray.IsLocked="True">
+                <Button Content="{Binding Localization[LoadButton]}" Command="{Binding LoadCommand}"
+                        ToolBar.OverflowMode="Never"/>
+                <Button Content="{Binding Localization[SaveButton]}" Command="{Binding SaveCommand}"
+                        ToolBar.OverflowMode="Never"/>
+                <TextBox Style="{StaticResource HintTextBox}" MinWidth="95"
+                         Tag="{Binding Localization[HintProfileId]}"
+                         Text="{Binding ProfileId, UpdateSourceTrigger=PropertyChanged}"
+                         ToolBar.OverflowMode="Never"/>
+            </ToolBar>
+            <ComboBox HorizontalAlignment="Right" VerticalAlignment="Center"
+                      Margin="0,0,4,0" MinWidth="100"
+                      ItemsSource="{Binding Languages}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      DisplayMemberPath="Name"/>
+        </Grid>
+        <DockPanel Grid.Row="1" Grid.Column="0" Margin="1">
+            <DockPanel DockPanel.Dock="Top">
+                <ComboBox DockPanel.Dock="Right" MinWidth="45" Margin="1"
+                          ItemsSource="{Binding WeightUnits}"
+                          SelectedItem="{Binding SelectedWeightUnit}"
+                          DisplayMemberPath="Display"/>
+                <TextBox Style="{StaticResource HintTextBox}"
+                         Tag="{Binding Localization[HintWeight]}"
+                         Text="{Binding WeightText, UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <ComboBox DockPanel.Dock="Right" MinWidth="45" Margin="1"
+                          ItemsSource="{Binding HeightUnits}"
+                          SelectedItem="{Binding SelectedHeightUnit}"
+                          DisplayMemberPath="Display"/>
+                <TextBox Style="{StaticResource HintTextBox}"
+                         Tag="{Binding Localization[HintHeight]}"
+                         Text="{Binding HeightText, UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="1">
+                    <RadioButton GroupName="Gender"
+                                 Content="{Binding Localization[GenderMale]}"
+                                 IsChecked="{Binding SelectedGender, Converter={StaticResource EnumToBoolean}, ConverterParameter={x:Static models:Gender.Male}}"/>
+                    <RadioButton GroupName="Gender"
+                                 Content="{Binding Localization[GenderFemale]}"
+                                 IsChecked="{Binding SelectedGender, Converter={StaticResource EnumToBoolean}, ConverterParameter={x:Static models:Gender.Female}}"/>
+                </StackPanel>
+                <TextBox Style="{StaticResource HintTextBox}"
+                         Tag="{Binding Localization[HintAge]}"
+                         Text="{Binding AgeText, UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <TextBlock DockPanel.Dock="Left" Text="{Binding Localization[PalLabel]}"
+                           TextAlignment="Left" VerticalAlignment="Center"/>
+                <ComboBox HorizontalContentAlignment="Center" Margin="1"
+                          ItemsSource="{Binding PalOptions}"
+                          SelectedItem="{Binding SelectedPal}"
+                          DisplayMemberPath="Display"/>
+            </DockPanel>
+            <DockPanel DockPanel.Dock="Top">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="1">
+                    <RadioButton GroupName="Deviation"
+                                 IsChecked="{Binding SelectedSign, Converter={StaticResource EnumToBoolean}, ConverterParameter={x:Static models:Sign.Gain}}">+</RadioButton>
+                    <RadioButton GroupName="Deviation"
+                                 IsChecked="{Binding SelectedSign, Converter={StaticResource EnumToBoolean}, ConverterParameter={x:Static models:Sign.Keep}}">=</RadioButton>
+                    <RadioButton GroupName="Deviation"
+                                 IsChecked="{Binding SelectedSign, Converter={StaticResource EnumToBoolean}, ConverterParameter={x:Static models:Sign.Loss}}">-</RadioButton>
+                </StackPanel>
+                <TextBox Style="{StaticResource HintTextBox}"
+                         Tag="{Binding Localization[HintDeviation]}"
+                         Text="{Binding DeviationText, UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+            <Button MinHeight="40" MinWidth="100" Margin="1"
+                    Content="{Binding Localization[CalculateButton]}"
+                    Command="{Binding CalculateCommand}"/>
+        </DockPanel>
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="1">
+            <TextBlock Style="{StaticResource TextBlock}" Text="{Binding Localization[BmrLabel]}"/>
+            <TextBlock Style="{StaticResource TextBlockNum}" Text="{Binding BmrText}"/>
+            <TextBlock Style="{StaticResource TextBlock}" Text="{Binding Localization[BmiLabel]}"/>
+            <TextBlock Style="{StaticResource TextBlockNum}" Text="{Binding BmiText}"/>
+            <TextBlock Style="{StaticResource TextBlock}" Text="{Binding DailyCalorieIndexLabel}"/>
+            <TextBlock Style="{StaticResource TextBlockNum}" Text="{Binding DailyCalorieIndexText}"/>
+        </StackPanel>
+    </Grid>
+</Window>

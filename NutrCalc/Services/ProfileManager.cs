@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NutrCalc.Models;
 
-namespace NutrCalc
+namespace NutrCalc.Services
 {
-    public class ProfileManager : IDisposable
+    public class ProfileManager : IProfileStore, IDisposable
     {
         private readonly NutrCalcContext context;
 
